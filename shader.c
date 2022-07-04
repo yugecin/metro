@@ -26,7 +26,7 @@ float railrail(vec3 p) {
 }
 
 float mirroredrail(vec3 p) {
-	p.x = abs(p.x) - 6.;
+	p.x = abs(p.x) - 7.;
 	return min(
 		length(max(abs(p) - vec3(1.6,.6,.7),0.)), //pads
 		railrail(p)
@@ -37,13 +37,19 @@ float rail(vec3 p) {
 	//p.y += iTime;
 	p.y = mod(p.y, 9.)-4.5;
 	return min(
-		length(max(abs(p) - vec3(10.,1.5,.5),0.)), // bottombar
+		length(max(abs(p) - vec3(13.,1.5,.5),0.)), // bottombar
 		mirroredrail(p)
 	);
 }
 
 float map(vec3 p) {
-	return min(rail(p), 50.-length(p.xz));
+	return min(
+		rail(p),
+		min(
+			dot(p,normalize(vec3(0,0,-1))) + 1.,
+			30.-length(vec2(p.x,p.z+20.))
+		)
+	);
 }
 
 vec3 norm(vec3 p, float dist_to_p) {
@@ -70,7 +76,8 @@ void main()
 {
 	vec2 uv = vec2(p.x,p.y/1.77);
 
-	vec3 ro = vec3(10, -300, -30);
+	vec3 ro = vec3(20*sin(iTime), -50*cos(iTime), -20);
+	//vec3 ro = vec3(20, -50, -20);
 	//ro.x = fpar[0].y/10.;
 	//vec2 m = iMouse.xy/iResolution.xy;
 	//ro.yz *= rot2(-m.y*PI+1.);
@@ -101,14 +108,23 @@ void main()
 		float d = map(p);
 		if (d < .001) {
 			vec3 n = norm(p, d);
-			vec3 r = reflect(rd, n);
+			//vec3 r = reflect(rd, n);
 
-			float dif = dot(n, normalize(vec3(1,2,-3)))*.5+.5;
-			col = n; // norm colors
+			//col = n; // norm colors
 			//col = vec3(1.-float(i)/100.); // flopine shade
-			col = vec3(dif);
+			//float dif = dot(n, normalize(vec3(1,2,-3)))*.5+.5;
+			//col = vec3(dif);
 			//col = vec3(1.,.745,.07);
 			//col *= 1.-float(i)/90.;
+
+			col = vec3(.05);
+			col += .02 * dot(n,normalize(-rd));
+			vec3 lightsrc = vec3(16.,10.,-10.);
+			col += vec3(1.,.92,.71) * .2 * dot(n,normalize(lightsrc-p)) / pow(length(p-lightsrc) / 15., 2.);
+			lightsrc = vec3(-16.,10.,-10.);
+			col += vec3(1.,.92,.71) * .2 * dot(n,normalize(lightsrc-p)) / pow(length(p-lightsrc) / 15., 2.);
+			//col = vec3(.05 + .05 * dot(n,normalize(-rd)));
+
 			hit = true;
 			break;
 		}
