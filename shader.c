@@ -8,6 +8,8 @@ in vec2 p;
 #define TAU 6.283185
 #define PI 3.141592
 
+float rand(vec2 p){return fract(sin(dot(p.xy,vec2(12.9898,78.233)))*43758.5453);}
+
 mat2 rot2(float a){float s=sin(a),c=cos(a);return mat2(c,s,-s,c);}
 
 float su(float d1, float d2, float k) {
@@ -34,7 +36,6 @@ float mirroredrail(vec3 p) {
 }
 
 float rail(vec3 p) {
-	//p.y += iTime;
 	p.y = mod(p.y, 9.)-4.5;
 	return min(
 		length(max(abs(p) - vec3(13.,1.5,.5),0.)), // bottombar
@@ -75,8 +76,14 @@ vec3 GetRayDir(vec2 uv, vec3 p, vec3 l, float zoom) {
 void main()
 {
 	vec2 uv = vec2(p.x,p.y/1.77);
+	/*
+	if (mod(gl_FragCoord.x, 2.) < 1.) {
+		uv.y += .1;
+	}
+	*/
 
-	vec3 ro = vec3(20*sin(iTime), -50*cos(iTime), -20);
+	float ttt = rand(p)*.01 + iTime;
+	vec3 ro = vec3(20*sin(ttt), -50*cos(ttt), -20);
 	//vec3 ro = vec3(20, -50, -20);
 	//ro.x = fpar[0].y/10.;
 	//vec2 m = iMouse.xy/iResolution.xy;
