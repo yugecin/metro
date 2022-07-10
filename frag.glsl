@@ -127,6 +127,7 @@ float supports(vec3 p) {
 }
 
 float tunnel(vec3 p) {
+	p.x=mod(p.x-80,160)-80;
 	p.z+=25;
 	return min(
 		dot(p,vec3(0,0,1))+44,
@@ -138,8 +139,12 @@ float tunnel(vec3 p) {
 }
 
 float map(vec3 p) {
+	float area=length(max(abs(p-vec3(-80,1000,-35))-vec3(190,1000,36),0));
+	if (area < 2) {
+	}
+		area = supports(p);
 	return min(
-		supports(p),
+		area,
 		min(
 			allrail(p),
 			min(
@@ -172,9 +177,9 @@ vec3 GetRayDir(vec2 uv, vec3 p, vec3 l, float zoom) {
 
 float flopine_shade;
 vec3 p;
-vec3 march(vec3 o,vec3 v){ // x=hit y=dist_to_p z=tot_dist
+vec3 march(vec3 o,vec3 v,int s){ // x=hit y=dist_to_p z=tot_dist
 	vec3 r=vec3(0);
-	for(int i=0;i<200;i++){
+	for(int i=0;i<s;i++){
 		p=o+r.z*v;
 
 		//p.y += 100.;
@@ -218,11 +223,15 @@ vec3 march(vec3 o,vec3 v){ // x=hit y=dist_to_p z=tot_dist
 
 float lit(vec3 h,vec2 a, vec3 n) {
 	vec3 b=vec3(a,-55),
-		r=march(b,normalize(h-b));
+		r=march(b,normalize(h-b),50);
 	if (r.x>0 && length(p-h)<.1) {
-		return .2 * dot(n,normalize(b-h)) / pow(r.z / 65., 4.);
+		return .2 * dot(n,normalize(b-h)) / pow(r.z / 65., 2.4);
 	}
 	return 0.;
+/*
+	vec3 b=vec3(a,-55);
+	return .2 * dot(n,normalize(b-h)) / pow(length(h-b) / 65., 2.4);
+	*/
 }
 
 void main()
@@ -268,7 +277,7 @@ void main()
 	rd = rayDirection;
 
 	vec3 col = vec3(.1);//vec3(.1-length(uv)*.1);
-	vec3 r = march(ro,rd);
+	vec3 r = march(ro,rd,200);
 	if (r.x>0) {
 		// hit
 		col=vec3(flopine_shade);
@@ -277,47 +286,18 @@ void main()
 			col+=vec3(.05*rand(p.xy));
 			//col=vec3(flopine_shade);
 			vec3 n = norm(p, r.y);
-			vec2 lo=p.xy,of=vec2(80,100),mu=vec2(-1,1);
-			lo.y-=mod(lo.y+50,200)-100;
-			lo.x-=mod(lo.x-160,320)-160;
+			vec2 lo=p.xy;
+			lo.y-=mod(lo.y,200)-100;
+			lo.x-=mod(lo.x,160)-80;
 			vec3 xx=p;
-			//col += vec3(1.,.92,.71) * lit(xx,lo+0*of*mu.xy,n);
 			col += vec3(1.,.92,.71) * lit(xx,lo/*+of*mu.yx*/,n);
-			//col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,200),n);
-			//col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,-200),n);
-			//col += vec3(1.,.92,.71) * lit(xx,lo+of*mu.yy,n);
-			//col += vec3(1.,.92,.71) * lit(xx,lo+of*mu.xy,n);
-			//col += vec3(1.,.92,.71) * lit(xx,lo+of*mu.xx,n);
-			//l=vec3(75,100,-55);
-			/*
-			vec3 xx=p;
-			r = march(l,normalize(xx-l));
-			if (r.x>0 && length(p-xx)<.1) {
-				//col = vec3(r.z/100);
-				col += vec3(1.,.92,.71) * .2 * dot(n,normalize(l-xx)) / pow(r.z / 75., 1.4);
+			col += vec3(1.,.92,.71) * lit(xx,lo+vec2(160,0),n);
+			col += vec3(1.,.92,.71) * lit(xx,lo+vec2(-160,0),n);
+			// TODO: remove these last 2 if needed
+			if (p.y<0) { // check because otherwise the light doesn't go in the tunnel
+				col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,200),n);
+				col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,-200),n);
 			}
-			/*
-			vec3 xx=p;
-			l=vec3(75,100,-55);
-			r = march(l,normalize(xx-l));
-			if (r.x>0 && length(p-xx)<.1) {
-				//col = vec3(r.z/100);
-				col += vec3(1.,.92,.71) * .2 * dot(n,normalize(l-xx)) / pow(r.z / 75., 1.4);
-			}
-			l=vec3(-75,100,-55);
-			r = march(l,normalize(xx-l));
-			if (r.x>0 && length(p-xx)<.1) {
-				//col = vec3(r.z/100);
-				col += vec3(1.,.92,.71) * .2 * dot(n,normalize(l-xx)) / pow(r.z / 75., 1.4);
-			}
-			/*
-			l=vec3(-80,50,-48);
-			r = march(l,normalize(xx-l));
-			if (r.x>0 && length(p-xx)<.1) {
-				//col = vec3(r.z/100);
-				col += vec3(1.,.92,.71) * .2 * dot(n,normalize(l-xx)) / pow(r.z / 95., 1.4);
-			}
-			*/
 		}
 	}
 
