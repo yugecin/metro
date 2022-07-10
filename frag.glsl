@@ -4,7 +4,9 @@
 #define xrot fpar[0].y
 #define TAU 6.283185
 #define PI 3.141592
+#define debugmov 1
 layout (location=0) uniform vec4 fpar[2];
+layout (location=2) uniform vec4 debug[2];
 out vec4 c;
 in vec2 p;
 float rand(vec2 p){return fract(sin(dot(p.xy,vec2(12.9898,78.233)))*43758.5453);}
@@ -27,14 +29,19 @@ float railrail(vec3 p) {
 }
 
 float mr2(vec3 p) {
-	op.y-=80;
-	float t = op.y / 30.;
-	t = 1.-cos((t)/2.);
-	p.x += t * 20.;
+	p.x -= 25;
+	//op.y-=80;
+	vec3 q = p;
+	p.x += (1.-cos((op.y/50)/2)) * 25.;
+	q.x += (1.-cos(((op.y-mod(op.y, 9)+4.5)/50)/2)) * 25.;
 	p.x = abs(p.x) - 7.;
+	q.x = abs(q.x) - 7.;
 	return min(
 		length(max(abs(p) - vec3(1.6,1.7,.7),0.)), //pads
-		railrail(p)
+		min(
+			railrail(p),
+			length(max(abs(q)-vec3(4.5,2.5,.5),0.)) // bottombar
+		)
 	);
 }
 
@@ -47,49 +54,94 @@ float mirroredrail(vec3 p) {
 }
 
 float rail(vec3 p) {
-	p.y = mod(p.y, 9.)-4.5;
-	p.z += .5;
 	return min(
 		length(max(abs(p) - vec3(13.,2.5,.5),0.)), // bottombar
-		min(mirroredrail(p), mr2(p))
-		//mirroredrail(p)
+		mirroredrail(p)
 	);
 }
 
-float support(vec3 p) {
-	float a = length(max(abs(p)-vec3(2,2,24),0));
-	if (a > 1.4) { // TODO: lighting might be better when this is bigger (~1.4), is it required?
-		//return a;
-	}
-	vec3 q=p,r,s=p,t=p;
-	q.x=abs(q.x)-2.8;
-	r=q;r.y=abs(r.y)-1.7;r.z=mod(r.z,2)-1;
-	t.x=abs(t.x)-1.3;t.z=mod(t.z,2)-1;
+float allrail(vec3 p) {
+	p.z += .5;
+	p.y = mod(p.y, 9.)-4.5;
+	vec3 q = p;
+	p.x = abs(p.x)-25;
 	return min(
+		rail(p),
+		mr2(q)
+	);
+}
+
+float support(vec2 p) {
+	float a = length(max(abs(p)-3.5,0));
+	//return a;
+	if (a > .2) {
+		return a;
+	}
+	vec2 q=p,s=p,z=vec2(3,.3);
+	vec3 r,t;
+	q.x=abs(q.x)-2.8;
+	r.xy=q;r.y=abs(r.y)-1.7;r.z=mod(op.z,2)-1;
+	t.xy=p;t.x=abs(t.x)-1.3;t.z=mod(op.z,2)-1;
+	return max(
+		dot(op,vec3(0,0,-1))-50,
 		min(
 			min(
-				length(max(abs(p)-vec3(3.,.3,54.),0.)),
-				length(max(abs(q)-vec3(.3,3,54.),0.))
+				min(
+					length(max(abs(p)-z.xy,0.)),
+					length(max(abs(q)-z.yx,0.))
+				),
+				length(t)-.6
 			),
-			length(t)-.6
-		),
-		length(r)-.6
+			length(r)-.6
+		)
 	);
+}
+
+float topsupport(vec2 p) { //p.xy = y/z
+	p.y += 63;
+	float v=length(max(abs(p)-vec2(1,5),0)),
+		h=length(max(abs(vec3(mod(op.x,20)-10,p.xy))-vec3(1,3,5),0)),//(length(vec3(mod(op.x,10)-5,p.xy))-3),
+		v2;
+	p.y=abs(p.y)-5.5;
+	v2=length(max(abs(p)-vec2(3,.5),0));
+	return min(h, su(v,v2,1));
+}
+float ts2(vec3 p) {
+	p.z += 53.5;
+	float v=length(max(abs(p)-vec3(35,1,3),0)),
+		v2;
+	p.z=abs(p.z)-3;
+	v2=length(max(abs(p)-vec3(35,3,.5),0));
+	return min(v,v2);
+}
+
+float supports(vec3 p) {
+	p.y=mod(p.y,100)-50;
+	float top=topsupport(p.yz);
+	p.x=mod(abs(p.x),160)-80;
+	float top2=ts2(p);
+	float b=length(max(abs(vec2(p.x,p.z+70))-vec2(20,13),0));
+	p.x=abs(p.x)-20;
+	float sup=min(support(p.xy), min(top,top2));
+	return min(sup,b);
 }
 
 float tunnel(vec3 p) {
 	p.z+=25;
-	return max(
-		dot(p,vec3(0,1,0)),
-		30.-length(vec2(p.x/1.8,p.z>0.?0:p.z*1.3))
+	return min(
+		dot(p,vec3(0,0,1))+44,
+		max(
+			dot(p,vec3(0,1,0)),
+			30.-length(vec2(p.x/1.8,p.z>0.?0:p.z*1.3))
+		)
 	);
 }
 
 float map(vec3 p) {
 	return min(
-		support(p),
+		supports(p),
 		min(
-			rail(p),
+			allrail(p),
 			min(
 				dot(p,vec3(0,0,-1)),
 				tunnel(p)
@@ -140,16 +192,16 @@ void main()
 
 	vec3 at = vec3(0);
 
-	/*
-	ro = fpar[0].yzw;
-	float down = fpar[1].y/20.;
+#if debugmov
+	ro = debug[0].xyz;
+	float down = debug[1].y/20.;
 	if (abs(down) < .001) down = .001;
 	float xylen = sin(down);
 	down = cos(down);
-	at.x = ro.x+cos(fpar[1].x/20.)*xylen;
-	at.y = ro.y+sin(fpar[1].x/20.)*xylen;
+	at.x = ro.x+cos(debug[1].x/20.)*xylen;
+	at.y = ro.y+sin(debug[1].x/20.)*xylen;
 	at.z = ro.z+down;
-	*/
+#endif
 
 	// TODO: 1st way of defining rd (above) gives a bit of tilt
 	// TODO: 2nd way (below) doesn't...?
@@ -160,7 +212,7 @@ void main()
 	vec3 rayDirection=mat3(cameraLeft,cameraUp,cameraForward)*normalize(vec3(uv,1));
 	rd = rayDirection;
 
-	vec3 col = vec3(.05);//vec3(.1-length(uv)*.1);
+	vec3 col = vec3(.1);//vec3(.1-length(uv)*.1);
 	float tot_dist = 0.;
 	bool hit = false;
 	for(int i=0; i < 200 /*&& tot_dist < 400.*/; i++) {
@@ -186,15 +238,13 @@ void main()
 			//col = vec3(1.,.745,.07);
 			//col *= 1.-float(i)/90.;
 
-			/*
-			col = vec3(.05);
+			col = vec3(.1);
 			//col += .02 * dot(n,normalize(-rd));
 			vec3 lightsrc = vec3(16.,10.,-10.);
-			col += vec3(1.,.92,.71) * .2 * dot(n,normalize(lightsrc-p)) / pow(length(p-lightsrc) / 15., 2.);
+			col += vec3(1.,.92,.71) * .2 * dot(n,normalize(lightsrc-p)) / pow(length(p-lightsrc) / 125., 2);
 			lightsrc = vec3(-16.,10.,-10.);
 			col += vec3(1.,.92,.71) * .2 * dot(n,normalize(lightsrc-p)) / pow(length(p-lightsrc) / 15., 2.);
 			//col = vec3(.05 + .05 * dot(n,normalize(-rd)));
-			*/
 
 			hit = true;
 			break;
