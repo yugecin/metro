@@ -9,6 +9,7 @@ layout (location=0) uniform vec4 fpar[2];
 layout (location=2) uniform vec4 debug[2];
 out vec4 c;
 in vec2 v;
+float s;
 float rand(vec2 p){return fract(sin(dot(p.xy,vec2(12.9898,78.233)))*43758.5453);}
 
 mat2 rot2(float a){float s=sin(a),c=cos(a);return mat2(c,s,-s,c);}
@@ -104,7 +105,7 @@ float topsupport(vec2 p) { //p.xy = y/z
 		v2;
 	p.y=abs(p.y)-5.5;
 	v2=length(max(abs(p)-vec2(3,.5),0));
-	return min(h, su(v,v2,1));
+	return min(h, min(v,v2));
 }
 float ts2(vec3 p) {
 	p.z += 53.5;
@@ -117,42 +118,59 @@ float ts2(vec3 p) {
 
 float supports(vec3 p) {
 	p.y=mod(p.y,100)-50;
+	float c=length(max(abs(p.y)-3,0));
+	if (c>1) {
+		return c;
+	}
 	float top=topsupport(p.yz);
 	p.x=mod(abs(p.x),160)-80;
 	float top2=ts2(p);
-	float b=length(max(abs(vec2(p.x,p.z+70))-vec2(20,13),0));
 	p.x=abs(p.x)-20;
 	float sup=min(support(p.xy), min(top,top2));
-	return min(sup,b);
+	return sup;
 }
 
 float tunnel(vec3 p) {
 	p.x=mod(p.x-80,160)-80;
 	p.z+=25;
-	return min(
-		dot(p,vec3(0,0,1))+44,
-		max(
-			dot(p,vec3(0,1,0)),
-			30.-length(vec2(p.x/1.8,p.z>0.?0:p.z*1.3))
-		)
+	return max(
+		dot(p,vec3(0,1,0)),
+		30.-length(vec2(p.x/1.8,p.z>0.?0:p.z*1.3))
 	);
 }
 
 float map(vec3 p) {
-	float area=length(max(abs(p-vec3(-80,1000,-35))-vec3(190,1000,36),0));
-	if (area < 2) {
+	s=length(max(abs(p-vec3(-80,1000,-35))-vec3(190,1000,36),0));
+	if (s < 2) {
+		s = supports(p);
 	}
-		area = supports(p);
+	vec2 
+		t=vec2(s,0.),
+		//ceil
+		c=vec2(dot(p,vec3(0,0,1))+69,1.),
+		//floor
+		f=vec2(dot(p,vec3(0,0,-1)),2.),
+		//walls
+		w=vec2(min(dot(p,vec3(-1,0,0))+103,dot(p,vec3(1,0,0))+263),3.), // l/r
+		r=vec2(allrail(p),4),
+		u=vec2(tunnel(p),5);
+
+	t=c.x<t.x?c:t;
+	t=f.x<t.x?f:t;
+	t=w.x<t.x?w:t;
+	t=r.x<t.x?r:t;
+	t=u.x<t.x?u:t;
+	s=t.y;
+	return t.x;
+	/*
 	return min(
 		area,
 		min(
 			allrail(p),
-			min(
-				dot(p,vec3(0,0,-1)),
-				tunnel(p)
-			)
+			tunnel(p)
 		)
 	);
+	*/
 }
 
 vec3 norm(vec3 p, float dist_to_p) {
@@ -179,7 +197,7 @@ float flopine_shade;
 vec3 p;
 vec3 march(vec3 o,vec3 v,int s){ // x=hit y=dist_to_p z=tot_dist
 	vec3 r=vec3(0);
-	for(int i=0;i<s;i++){
+	for(int i=0;i<s&&r.z<350;i++){
 		p=o+r.z*v;
 
 		//p.y += 100.;
@@ -222,26 +240,27 @@ vec3 march(vec3 o,vec3 v,int s){ // x=hit y=dist_to_p z=tot_dist
 }
 
 float lit(vec3 h,vec2 a, vec3 n) {
-	vec3 b=vec3(a,-55),
+	vec3 b=vec3(a,-55), // TODO: 68.9?
 		r=march(b,normalize(h-b),50);
 	if (r.x>0 && length(p-h)<.1) {
-		return .2 * dot(n,normalize(b-h)) / pow(r.z / 65., 2.4);
+		float pw=75;
+		if (s==1.) { // if surface=ceiling, pw=25
+			float t = smoothstep(0,-15,p.z-b.z);
+			pw-=t*t*50;
+		}
+		return .3 * dot(n,normalize(b-h)) / pow(r.z / pw, 2.9);
 	}
 	return 0.;
-/*
-	vec3 b=vec3(a,-55);
-	return .2 * dot(n,normalize(b-h)) / pow(length(h-b) / 65., 2.4);
-	*/
+	//vec3 b=vec3(a,-55);
+	//return .2 * dot(n,normalize(b-h)) / pow(length(h-b) / 65., 2.4);
 }
 
 void main()
 {
 	vec2 uv=v;uv.y/=1.77;
-	/*
-	if (mod(gl_FragCoord.x, 2.) < 1.) {
-		uv.y += .1;
-	}
-	*/
+	//if (mod(gl_FragCoord.x, 2.) < 1.) {
+		//uv.y += .01;
+	//}
 
 	float ttt = rand(v)*.001 + iTime;
 	vec3 ro = vec3(10*sin(ttt), -30*cos(ttt), -20);
@@ -276,29 +295,38 @@ void main()
 	vec3 rayDirection=mat3(cameraLeft,cameraUp,cameraForward)*normalize(vec3(uv,1));
 	rd = rayDirection;
 
-	vec3 col = vec3(.1);//vec3(.1-length(uv)*.1);
+	vec3 col = vec3(.05);//vec3(.1-length(uv)*.1);
 	vec3 r = march(ro,rd,200);
 	if (r.x>0) {
 		// hit
-		col=vec3(flopine_shade);
+		float e=rand(mod(p.xy,10));
+		//col=vec3(flopine_shade);
+		col=vec3(.05+.05*e);
 		if (p.y>-99) {
-			col = vec3(.1);
-			col+=vec3(.05*rand(p.xy));
-			//col=vec3(flopine_shade);
-			vec3 n = norm(p, r.y);
+			// big area lights
+			vec3 n = norm(p, r.y),
+				xx=p,
+				l = vec3(1.,.92,.71);
+			//if (s==0.) l+=.2*e;
+			if (s==2.) l*=.2;
+			if (s==4.) l*=vec3(.22,.14,.04)+.05*e;
 			vec2 lo=p.xy;
-			lo.y-=mod(lo.y,200)-100;
-			lo.x-=mod(lo.x,160)-80;
-			vec3 xx=p;
-			col += vec3(1.,.92,.71) * lit(xx,lo/*+of*mu.yx*/,n);
-			col += vec3(1.,.92,.71) * lit(xx,lo+vec2(160,0),n);
-			col += vec3(1.,.92,.71) * lit(xx,lo+vec2(-160,0),n);
+			lo.y+=100;
+			lo.y-=mod(lo.y,400)-100;
+			//lo.y+=75;
+			//lo.y+=20;
+			//lo.y-=mod(lo.y,200)-100;
+			lo.x-=mod(lo.x,160);
+			col += l * lit(xx,lo/*+of*mu.yx*/,n);
+			col += l * lit(xx,lo+vec2(160,0),n);
+			col += l * lit(xx,lo+vec2(-160,0),n);
 			// TODO: remove these last 2 if needed
-			if (p.y<0) { // check because otherwise the light doesn't go in the tunnel
-				col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,200),n);
-				col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,-200),n);
-			}
+			//if (p.y<0) { // check because otherwise the light doesn't go in the tunnel
+				//col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,100),n);
+				//col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,-100),n);
+			//}
 		}
+		col=mix(col,vec3(.05),smoothstep(300,350,r.z));
 	}
 
 	//if (!hit) {
