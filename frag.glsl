@@ -35,15 +35,26 @@ float mr2(vec3 p) {
 	p.x -= 25;
 	//op.y-=80;
 	vec3 q = p;
-	p.x += (1.-cos((op.y/50)/2)) * 25.;
-	q.x += (1.-cos(((op.y-mod(op.y, 9)+4.5)/50)/2)) * 25.;
+	float a= op.y;
+	a=mod(a-315,630)-315;
+	//a=mod(a-157.5,630)-315;
+	//return length(max(abs(op.y)-157.5,0));
+	float b=op.y;
+	b+=int(op.y/630)*315;
+	//if (mod(b,630)<315)
+	//b=mod(b,315)-5;
+	p.x += (1.-cos((b/50)/2)) * 25.;
+	q.x += (1.-cos(((b-mod(b, 9)+4.5)/50)/2)) * 25.;
 	p.x = abs(p.x) - 7.;
 	q.x = abs(q.x) - 7.;
-	return min(
-		length(max(abs(p) - vec3(1.6,1.7,.7),0.)), //pads
+	return max(
+		length(max(abs(a-157.5)-157.5,0)),
 		min(
-			railrail(p),
-			length(max(abs(q)-vec3(4.5,2.5,.5),0.)) // bottombar
+			length(max(abs(p) - vec3(1.6,1.7,.7),0.)), //pads
+			min(
+				railrail(p),
+				length(max(abs(q)-vec3(4.5,2.5,.5),0.)) // bottombar
+			)
 		)
 	);
 }
@@ -282,8 +293,8 @@ void main()
 	if (r.x>0) {
 		// hit
 		float e=rand(mod(p.xy,10));
-		//col=vec3(flopine_shade);
 		col=vec3(.05+.05*e);
+		//col=vec3(flopine_shade);
 		if (p.y>-99) {
 			// big area lights
 			vec3 n = norm(p, r.y),
