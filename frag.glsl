@@ -454,7 +454,9 @@ void main()
 		//if (s==0.) l+=.2*e;
 		if(s==2.)l*=.2; // darker floor
 		if(s==3.){
-			q=(p.yz-vec2(60,-50))/vec2(80,45);
+			q=p.yz;
+			q.x=mod(q.x,400);
+			q=(q-vec2(60,-50))/vec2(80,45);
 			if (q.x>.01&&q.y>.01&&q.x<.99&&q.y<.99) {
 				if(p.x<0)q.x=1-q.x; // other direction for other side
 				//l*=q.x; // add color here
