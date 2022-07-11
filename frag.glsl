@@ -417,7 +417,7 @@ float lit(vec3 h,vec2 a, vec3 n) {
 
 void main()
 {
-	vec2 uv=v;uv.y/=1.77;
+	vec2 q,lo,uv=v;uv.y/=1.77;
 	if (fpar[0].y>0) {
 		// rendering grafitti to texture
 		//uv.x=(uv.x+1.)*10;
@@ -456,52 +456,46 @@ void main()
 	// TODO: 1st way of defining rd (above) gives a bit of tilt
 	// TODO: 2nd way (below) doesn't...?
 	//ro = vec3(cos(time*.2)*5.,2,sin(time*.2)*5.);
-	vec3 cf=normalize(at-ro),
+	vec3 n,xx,l,cf=normalize(at-ro),
 		cl=normalize(cross(cf,vec3(0,0,-1))),
-	rd=mat3(cl,normalize(cross(cl,cf)),cf)*normalize(vec3(uv,1));
-
-	vec3 b,col;//vec3(.1-length(uv)*.1);
-	vec3 r = march(ro,rd,200);
+		rd=mat3(cl,normalize(cross(cl,cf)),cf)*normalize(vec3(uv,1)),
+		b,col,//vec3(.1-length(uv)*.1);
+		r=march(ro,rd,200);
 	if (r.x>0) {
 		// hit
 		float e=rand(mod(p.xy,10));
 		col=b=vec3(.05+.05*e);
 		//col=vec3(flopine_shade);
-		if (p.y>-99) {
-			// big area lights
-			vec3 n = norm(p, r.y),
-				xx=p,
-				l = vec3(1.,.92,.71);
-			//if (s==0.) l+=.2*e;
-			if (s==2.) l*=.2; // darker floor
-			if (s==3.) {
-				vec2 q=(p.yz-vec2(60,-50))/vec2(80,45);
-				if (q.x>.01&&q.y>.01&&q.x<.99&&q.y<.99) {
-					if(p.x<0)q.x=1-q.x; // other direction for other side
-					//l*=q.x; // add color here
-					vec3 t=texture(tex,q).xyz;
-					l+=t*3.;
-					if (length(t)>.1) l+=.9*e; // TODO is this needed
-					//l=vec3(graf(q))*7.;
-				}
+		// big area lights
+		n=norm(p, r.y);
+		xx=p;
+		l=vec3(1.,.92,.71);
+		//if (s==0.) l+=.2*e;
+		if(s==2.)l*=.2; // darker floor
+		if(s==3.){
+			q=(p.yz-vec2(60,-50))/vec2(80,45);
+			if (q.x>.01&&q.y>.01&&q.x<.99&&q.y<.99) {
+				if(p.x<0)q.x=1-q.x; // other direction for other side
+				//l*=q.x; // add color here
+				vec3 t=texture(tex,q).xyz;
+				l+=t*3.;
+				if(length(t)>.1) l+=.9*e; // TODO is this needed
+				//l=vec3(graf(q))*7.;
 			}
-			if (s==4.) l*=vec3(.22,.14,.04)+.05*e;
-			if (s==5.) l*=vec3(.6)+.05*e;
-			vec2 lo=p.xy;
+		}
+		if(s==4.)l*=vec3(.22,.14,.04)+.05*e;
+		if(s==5.)l*=vec3(.6)+.05*e;
+		if (p.y>-99) {
+			lo=p.xy;
 			lo.y+=100;
 			lo.y-=mod(lo.y,400)-100;
 			//lo.y+=75;
 			//lo.y+=20;
 			//lo.y-=mod(lo.y,200)-100;
 			lo.x-=mod(lo.x,160);
-			col += l * lit(xx,lo/*+of*mu.yx*/,n);
-			col += l * lit(xx,lo+vec2(160,0),n);
-			col += l * lit(xx,lo+vec2(-160,0),n);
-			// TODO: remove these last 2 if needed
-			//if (p.y<0) { // check because otherwise the light doesn't go in the tunnel
-				//col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,100),n);
-				//col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,-100),n);
-			//}
+			col+=l*lit(xx,lo/*+of*mu.yx*/,n);
+			col+=l*lit(xx,lo+vec2(160,0),n);
+			col+=l*lit(xx,lo+vec2(-160,0),n);
 		}
 		col=mix(col,b,smoothstep(300,350,r.z));
 	}else{
