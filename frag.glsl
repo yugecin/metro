@@ -182,7 +182,7 @@ float su(float d1, float d2, float k) {
 	return mix(d2,d1,h)-k*h*(1.-h);
 }
 
-vec3 op = vec3(1.);
+vec3 op=vec3(1.),n;
 float railrail(vec3 p) {
 	p.z = abs(p.z+1.7) - .8;
 	float a=su(
@@ -370,27 +370,8 @@ vec3 march(vec3 o,vec3 v,int s){ // x=hit y=dist_to_p z=tot_dist
 		//p.xz*=rot2(sin(p.z*0.2)*0.2+iTime);
 		float d=map(p);
 		if (d < .008) {
-			//vec3 n = norm(p, d);
-			//vec3 r = reflect(rd, n);
-
-			//col = n; // norm colors
 			r.y=d;
 			flopine_shade=1.-float(i)/100.;
-			//float dif = dot(n, normalize(vec3(1,2,-3)))*.5+.5;
-			//col = vec3(dif);
-			//col = vec3(1.,.745,.07);
-			//col *= 1.-float(i)/90.;
-
-/*
-			col = vec3(.1);
-			//col += .02 * dot(n,normalize(-rd));
-			vec3 lightsrc = vec3(16.,10.,-10.);
-			col += vec3(1.,.92,.71) * .2 * dot(n,normalize(lightsrc-p)) / pow(length(p-lightsrc) / 125., 2);
-			lightsrc = vec3(-16.,10.,-10.);
-			col += vec3(1.,.92,.71) * .2 * dot(n,normalize(lightsrc-p)) / pow(length(p-lightsrc) / 15., 2.);
-			//col = vec3(.05 + .05 * dot(n,normalize(-rd)));
-			*/
-
 			r.x=1;
 			break;
 		}
@@ -399,7 +380,7 @@ vec3 march(vec3 o,vec3 v,int s){ // x=hit y=dist_to_p z=tot_dist
 	return r;
 }
 
-float lit(vec3 h,vec2 a, vec3 n) {
+float lit(vec3 h,vec2 a) {
 	vec3 b=vec3(a,-55), // TODO: 68.9?
 		r=march(b,normalize(h-b),50);
 	if (r.x>0 && length(p-h)<.1) {
@@ -456,7 +437,7 @@ void main()
 	// TODO: 1st way of defining rd (above) gives a bit of tilt
 	// TODO: 2nd way (below) doesn't...?
 	//ro = vec3(cos(time*.2)*5.,2,sin(time*.2)*5.);
-	vec3 n,xx,l,cf=normalize(at-ro),
+	vec3 xx,l,cf=normalize(at-ro),
 		cl=normalize(cross(cf,vec3(0,0,-1))),
 		rd=mat3(cl,normalize(cross(cl,cf)),cf)*normalize(vec3(uv,1)),
 		b,col,//vec3(.1-length(uv)*.1);
@@ -493,9 +474,18 @@ void main()
 			//lo.y+=20;
 			//lo.y-=mod(lo.y,200)-100;
 			lo.x-=mod(lo.x,160);
-			col+=l*lit(xx,lo/*+of*mu.yx*/,n);
-			col+=l*lit(xx,lo+vec2(160,0),n);
-			col+=l*lit(xx,lo+vec2(-160,0),n);
+			col+=l*lit(xx,lo);
+			col+=l*lit(xx,lo+vec2(160,0));
+			col+=l*lit(xx,lo+vec2(-160,0));
+		}
+		if(p.y<-50){
+			lo=p.xy;
+			//lo.y+=100;
+			lo.y-=mod(lo.y,400)-200;
+			lo.x=lo.x<-80?-160:0;
+			xx.xy=lo;
+			xx.z=-30;
+			col+=l*.2*dot(n,normalize(xx-p))/pow(length(p-xx)/40,3);
 		}
 		col=mix(col,b,smoothstep(300,350,r.z));
 	}else{
