@@ -505,7 +505,7 @@ void main()
 		}
 		col=mix(col,b,smoothstep(300,350,r.z));
 	}else{
-		col=vec3(.05+.05*rand(mod(uv,10)));
+		col=vec3(.05+.05*rand(mod(vec2(r.z,r.y),10)));
 	}
 
 	//if (!hit) {
