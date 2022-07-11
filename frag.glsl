@@ -66,6 +66,9 @@ float rail(vec3 p) {
 float allrail(vec3 p) {
 	s=0;
 	p.z += .5;
+	p.x=mod(p.x+80,160)-80;
+	float t=length(max(abs(p.xz)-vec2(39,3),0));
+	if (t>1)return t;
 	p.y = mod(p.y, 9.)-4.5;
 	vec3 q = p;
 	p.x = abs(p.x)-25;
