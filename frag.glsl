@@ -510,6 +510,7 @@ void main()
 
 	//if (!hit) {
 		//col = pow(col, vec3(.4545));	// gamma correction
+		col = pow(col, vec3(.8545));	// gamma correction
 	//}
 
 	c = vec4(col,1.0);
