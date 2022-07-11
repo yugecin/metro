@@ -22,11 +22,13 @@ float su(float d1, float d2, float k) {
 vec3 op = vec3(1.);
 float railrail(vec3 p) {
 	p.z = abs(p.z+1.7) - .8;
-	return su(
+	float a=su(
 		length(max(abs(p+vec3(0.,0.,.5)) - vec3(.6,5.,.7),0.)), //mid
 		length(max(abs(p) - vec3(1.,5.,.2),0.)) //bot/top
 		,.3
 	);
+	if (a<.01)s=1;
+	return a;
 }
 
 float mr2(vec3 p) {
@@ -62,6 +64,7 @@ float rail(vec3 p) {
 }
 
 float allrail(vec3 p) {
+	s=0;
 	p.z += .5;
 	p.y = mod(p.y, 9.)-4.5;
 	vec3 q = p;
@@ -145,32 +148,23 @@ float map(vec3 p) {
 		s = supports(p);
 	}
 	vec2 
-		t=vec2(s,0.),
+		t=vec2(s,0),
 		//ceil
-		c=vec2(dot(p,vec3(0,0,1))+69,1.),
+		c=vec2(dot(p,vec3(0,0,1))+69,1),
 		//floor
-		f=vec2(dot(p,vec3(0,0,-1)),2.),
+		f=vec2(dot(p,vec3(0,0,-1)),2),
 		//walls
-		w=vec2(min(dot(p,vec3(-1,0,0))+103,dot(p,vec3(1,0,0))+263),3.), // l/r
-		r=vec2(allrail(p),4),
-		u=vec2(tunnel(p),5);
+		w=vec2(min(dot(p,vec3(-1,0,0))+103,dot(p,vec3(1,0,0))+263),3), // l/r
+		r=vec2(allrail(p),4), // 5 is rail itself
+		u=vec2(tunnel(p),6);
 
 	t=c.x<t.x?c:t;
 	t=f.x<t.x?f:t;
 	t=w.x<t.x?w:t;
-	t=r.x<t.x?r:t;
+	t=r.x<t.x?vec2(r.x,4+s):t;
 	t=u.x<t.x?u:t;
 	s=t.y;
 	return t.x;
-	/*
-	return min(
-		area,
-		min(
-			allrail(p),
-			tunnel(p)
-		)
-	);
-	*/
 }
 
 vec3 norm(vec3 p, float dist_to_p) {
@@ -295,6 +289,7 @@ void main()
 			//if (s==0.) l+=.2*e;
 			if (s==2.) l*=.2;
 			if (s==4.) l*=vec3(.22,.14,.04)+.05*e;
+			if (s==5.) l*=vec3(.6)+.05*e;
 			vec2 lo=p.xy;
 			lo.y+=100;
 			lo.y-=mod(lo.y,400)-100;
