@@ -22,8 +22,29 @@ char *vsh=
 
 PIXELFORMATDESCRIPTOR pfd={0,1,PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER, 32, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0};
-DEVMODE dmScreenSettings={ 0,0,0,sizeof(DEVMODE),0,DM_PELSWIDTH|DM_PELSHEIGHT,
+
+#define XRES 1920
+#define YRES 1080
+
+/*
+DEVMODE dmScreenSettings={ {0},0,0,sizeof(DEVMODE),0,DM_PELSWIDTH|DM_PELSHEIGHT,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1024,768,0,0,0,0,0,0,0,0,0,0};
+
+/*
+static DEVMODE dmScreenSettings = { {0},
+    #if _MSC_VER < 1400
+    0,0,148,0,0x001c0000,{0},0,0,0,0,0,0,0,0,0,{0},0,32,XRES,YRES,0,0,      // Visual C++ 6.0
+    #else
+    0,0,156,0,0x001c0000,{0},0,0,0,0,0,{0},0,32,XRES,YRES,{0}, 0,           // Visuatl Studio 2005
+    #endif
+    #if(WINVER >= 0x0400)
+    0,0,0,0,0,0,
+    #if (WINVER >= 0x0500) || (_WIN32_WINNT >= 0x0400)
+    0,0
+    #endif
+    #endif
+    };
+    */
 
 // define this if you have a multicore cpu and can spare ~10 bytes for realtime playback
 // undef for sound precalc
@@ -107,21 +128,29 @@ void  InitSound()
 // entry point for the executable if msvcrt is not used
 /////////////////////////////////////////////////////////////////////////////////
 #pragma code_seg(".main")
-//gcc+ld: int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
-void mainCRTStartup(void)
+//gcc+ld? int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+//gcc+link? int WINAPI _WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+//gcc+crinkler void mainCRTStartup(void)
+//gcc+crinkler subsystem:windows
+void WinMainCRTStartup(void)
 {
 #ifdef dbg
 	char log[1024];
 	int logsize;
 #endif
+	DEVMODE dm = {0};
+	dm.dmSize = sizeof(DEVMODE);
+	dm.dmFields = DM_PELSHEIGHT | DM_PELSWIDTH;
+	dm.dmPelsWidth = XRES;
+	dm.dmPelsHeight = YRES;
+
 	float fparams[4*2];
 	int t,t2,k;
-	ChangeDisplaySettings(&dmScreenSettings,CDS_FULLSCREEN);
-	HDC hDC = GetDC(CreateWindow("edit",0,WS_POPUP | WS_VISIBLE | WS_MAXIMIZE, 0,
-	0, 0, 0, 0, 0, 0, 0));
+	ChangeDisplaySettings(&dm,CDS_FULLSCREEN);
+	HANDLE hWnd = CreateWindow("static",0,WS_POPUP | WS_VISIBLE | WS_MAXIMIZE, 0, 0, XRES, YRES, 0, 0, 0, 0);
+	HDC hDC = GetDC(hWnd);
 	SetPixelFormat(hDC, ChoosePixelFormat(hDC, &pfd) , &pfd);
 	wglMakeCurrent(hDC, wglCreateContext(hDC));
-	ShowCursor(0);
 	/*
 	GLuint p = ((PFNGLCREATEPROGRAMPROC)wglGetProcAddress("glCreateProgram"))();
 	GLuint s = k =((PFNGLCREATESHADERPROC)(wglGetProcAddress("glCreateShader")))(GL_VERTEX_SHADER);
@@ -150,6 +179,29 @@ void mainCRTStartup(void)
 		ExitProcess(1);
 	}
 #endif
+	ShowCursor(0);
+	/*
+	GetClientRect(hWnd, &rect);
+	for (t=0;t<6;t++){
+		log[t]='0' + (rect.right%10);
+		rect.right/=10;
+	}
+	log[6]=0;
+	MessageBoxA(NULL, log, "hi", MB_OK);
+	ExitProcess(1);
+	*/
+
+	/*
+	HMONITOR monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+	MONITORINFO info;
+	info.cbSize = sizeof(MONITORINFO);
+	GetMonitorInfo(monitor, &info);
+	rect.right = info.rcMonitor.right - info.rcMonitor.left;
+	rect.bottom = info.rcMonitor.bottom - info.rcMonitor.top;
+	*/
+
+	//glViewport(0, 0, XRES, YRES);
+
 	InitSound();
 	t2=-1004;
 	do
@@ -184,5 +236,7 @@ void mainCRTStartup(void)
 		// RenderIntro(MMTime.u.sample);
 
 	} while (MMTime.u.sample < MAX_SAMPLES && !GetAsyncKeyState(VK_ESCAPE));
+	ChangeDisplaySettings(0,0);
+	ShowCursor(1);
 	ExitProcess(0);
 }
