@@ -290,7 +290,14 @@ void main()
 				xx=p,
 				l = vec3(1.,.92,.71);
 			//if (s==0.) l+=.2*e;
-			if (s==2.) l*=.2;
+			if (s==2.) l*=.2; // darker floor
+			if (s==3.) {
+				vec2 q=(p.yz-vec2(60,-50))/vec2(80,40);
+				if (q.x>0&&q.y>0&&q.x<1&&q.y<1) {
+					if(p.x<0)q.x=1-q.x; // other direction for other side
+					l*=q.x; // add color here
+				}
+			}
 			if (s==4.) l*=vec3(.22,.14,.04)+.05*e;
 			if (s==5.) l*=vec3(.6)+.05*e;
 			vec2 lo=p.xy;
