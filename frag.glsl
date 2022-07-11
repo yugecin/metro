@@ -183,16 +183,6 @@ vec3 norm(vec3 p, float dist_to_p) {
 	));
 }
 
-vec3 GetRayDir(vec2 uv, vec3 p, vec3 l, float zoom) {
-	vec3 f = normalize(l-p),
-	     r = normalize(cross(vec3(0,1,0), f)),
-	     u = cross(f,r),
-	     c = f*zoom,
-	     i = c + uv.x*r + uv.y*u,
-	     d = normalize(i);
-	return d;
-}
-
 float flopine_shade;
 vec3 p;
 vec3 march(vec3 o,vec3 v,int s){ // x=hit y=dist_to_p z=tot_dist
@@ -270,9 +260,6 @@ void main()
 	//vec2 m = iMouse.xy/iResolution.xy;
 	//ro.yz *= rot2(-m.y*PI+1.);
 	//ro.xy *= rot2(-m.x*TAU);
-	vec3 rd = GetRayDir(uv, ro, vec3(0,0,0), 1.);
-
-
 	vec3 at = vec3(0,0,-25);
 
 #if debugmov
@@ -289,11 +276,9 @@ void main()
 	// TODO: 1st way of defining rd (above) gives a bit of tilt
 	// TODO: 2nd way (below) doesn't...?
 	//ro = vec3(cos(time*.2)*5.,2,sin(time*.2)*5.);
-	vec3 cameraForward=normalize(at-ro);
-	vec3 cameraLeft=normalize(cross(cameraForward,vec3(0,0,-1)));
-	vec3 cameraUp=normalize(cross(cameraLeft,cameraForward));
-	vec3 rayDirection=mat3(cameraLeft,cameraUp,cameraForward)*normalize(vec3(uv,1));
-	rd = rayDirection;
+	vec3 cf=normalize(at-ro),
+		cl=normalize(cross(cf,vec3(0,0,-1))),
+	rd=mat3(cl,normalize(cross(cl,cf)),cf)*normalize(vec3(uv,1));
 
 	vec3 col = vec3(.05);//vec3(.1-length(uv)*.1);
 	vec3 r = march(ro,rd,200);
