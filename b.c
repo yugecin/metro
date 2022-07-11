@@ -145,7 +145,7 @@ void WinMainCRTStartup(void)
 	dm.dmPelsHeight = YRES;
 
 	float fparams[4*2];
-	int it,t,t2,k;
+	int it,t,t2,k,tex;
 	ChangeDisplaySettings(&dm,CDS_FULLSCREEN);
 	HANDLE hWnd = CreateWindow("static",0,WS_POPUP | WS_VISIBLE | WS_MAXIMIZE, 0, 0, XRES, YRES, 0, 0, 0, 0);
 	HDC hDC = GetDC(hWnd);
@@ -180,6 +180,17 @@ void WinMainCRTStartup(void)
 	}
 #endif
 	ShowCursor(0);
+	//glActiveTexture(GL_TEXTURE0);
+	((PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture"))(GL_TEXTURE0); // TODO: seems to work without, remove?
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//((PFNGLGENTEXTURESEXTPROC)wglGetProcAddress("glGenTexturesEXT"))(1, &tex);
+	//((PFNGLBINDTEXTURESPROC)wglGetProcAddress("glBindTextures"))(GL_TEXTURE_2D, 1, &tex);
+	//int x=GL_LINEAR;
+	//((PFNGLTEXPARAMETERIIVPROC)wglGetProcAddress("glTexParameterIiv"))(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &x);
+	//((PFNGLTEXPARAMETERIIVPROC)wglGetProcAddress("glTexParameterIiv"))(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &x);
 	/*
 	GetClientRect(hWnd, &rect);
 	for (t=0;t<6;t++){
@@ -215,6 +226,12 @@ void WinMainCRTStartup(void)
 		if (t - t2 > 50) {
 
 			fparams[0] = t/1000.0f;
+			fparams[1] = 2.f;
+			((PFNGLPROGRAMUNIFORM4FVPROC)wglGetProcAddress("glProgramUniform4fv"))(s, 0, 2, fparams);
+			glRecti(1,1,-1,-1);
+			//glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, rect.right, rect.bottom, 0);
+			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, XRES, YRES, 0);
+
 			fparams[1] = .0f;
 			fparams[2] = .5f;
 			fparams[3] = .5f;
@@ -227,7 +244,8 @@ void WinMainCRTStartup(void)
 			((PFNGLPROGRAMUNIFORM4FVPROC)wglGetProcAddress("glProgramUniform4fv"))(s, 0, 2, fparams);
 			//((PFNGLPROGRAMUNIFORM4FPROC)wglGetProcAddress("glProgramUniform4f"))(s, 0, t, t, t, t);
 			//((PFNGLPROGRAMUNIFORM4FPROC)wglGetProcAddress("glProgramUniform4f"))(s, 0, .5f,.5f,.5f,.5f);
-
+			//((PFNGLPROGRAMUNIFORM1IPROC)wglGetProcAddress("glProgramUniform1i"))(s, 4, 0);
+			//glProgramUniform1i(s, 4, 0);
 			glRecti(1,1,-1,-1);
 			SwapBuffers(hDC);
 			t2 = t;
