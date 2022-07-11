@@ -145,7 +145,7 @@ void WinMainCRTStartup(void)
 	dm.dmPelsHeight = YRES;
 
 	float fparams[4*2];
-	int t,t2,k;
+	int it,t,t2,k;
 	ChangeDisplaySettings(&dm,CDS_FULLSCREEN);
 	HANDLE hWnd = CreateWindow("static",0,WS_POPUP | WS_VISIBLE | WS_MAXIMIZE, 0, 0, XRES, YRES, 0, 0, 0, 0);
 	HDC hDC = GetDC(hWnd);
@@ -203,15 +203,16 @@ void WinMainCRTStartup(void)
 	//glViewport(0, 0, XRES, YRES);
 
 	InitSound();
+	it=GetTickCount();
 	t2=-1004;
 	do
 	{
 		// get sample position for timing
 		waveOutGetPosition(hWaveOut, &MMTime, sizeof(MMTIME));
 
-		t=GetTickCount();
+		t=GetTickCount()-it;
 
-		//if (t - t2 > 50) {
+		if (t - t2 > 50) {
 
 			fparams[0] = t/1000.0f;
 			fparams[1] = .0f;
@@ -230,7 +231,7 @@ void WinMainCRTStartup(void)
 			glRecti(1,1,-1,-1);
 			SwapBuffers(hDC);
 			t2 = t;
-		//}
+		}
 
 		// do your intro mainloop here
 		// RenderIntro(MMTime.u.sample);
