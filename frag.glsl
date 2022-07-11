@@ -405,12 +405,12 @@ void main()
 		cl=normalize(cross(cf,vec3(0,0,-1))),
 	rd=mat3(cl,normalize(cross(cl,cf)),cf)*normalize(vec3(uv,1));
 
-	vec3 col = vec3(.05);//vec3(.1-length(uv)*.1);
+	vec3 b,col;//vec3(.1-length(uv)*.1);
 	vec3 r = march(ro,rd,200);
 	if (r.x>0) {
 		// hit
 		float e=rand(mod(p.xy,10));
-		col=vec3(.05+.05*e);
+		col=b=vec3(.05+.05*e);
 		//col=vec3(flopine_shade);
 		if (p.y>-99) {
 			// big area lights
@@ -448,7 +448,9 @@ void main()
 				//col += vec3(1.,.92,.71) * lit(xx,lo+vec2(0,-100),n);
 			//}
 		}
-		col=mix(col,vec3(.05),smoothstep(300,350,r.z));
+		col=mix(col,b,smoothstep(300,350,r.z));
+	}else{
+		col=vec3(.05+.05*rand(mod(uv,10)));
 	}
 
 	//if (!hit) {
