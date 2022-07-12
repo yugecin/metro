@@ -4,12 +4,13 @@
 #define TAU 6.283185 //noexport
 #define PI 3.141592 //noexport
 #define debugmov 1 //noexport
+#define cam(t,ca,mm,nn) for(i=0;ttt>ca[i+1]&&ca[i+6]!=-1;i+=6);g=(ttt-ca[i])/(ca[i+1]-ca[i]);s=1-g;t=(s*s*s*ca[i+2]+s*s*g*3*ca[i+3]+s*g*g*3*ca[i+4]+g*g*g*ca[i+5])*mm-nn;
 layout (location=0) uniform vec4 fpar[2];
 layout (location=2) uniform vec4 debug[2]; //noexport
 layout (location=4) uniform sampler2D tex;
 out vec4 c;
 in vec2 v;
-float s;
+float s,ttt,g;
 int i;
 
 const float[] so = float[] (
@@ -142,20 +143,37 @@ const float[] so = float[] (
 -1.
 );
 
-const float[] a = float[] (
-.0,2.15,.03,.5,.5,.51,.83,.03,.5,.5,.51,.83,.28,.5,.5,.38,.5,.41,.5,.5,.38,.5,
-2.15,4.99,.41,.5,.5,.38,.5,.58,.5,.5,.38,.5,.68,.5,.5,.5,.5,.68,.5,.5,.5,.5,
--1
-);
+const float[] ax=float[](
+.07,26.9,.58,.58,.58,.58,
+-1);
+const float[] ay=float[](
+-0.13,15.13,.03,.12,.26,.3,
+15.13,65.5,.3,.43,.67,.68,
+-1);
+const float[] az=float[](
+-0.07,6.4,.17,.26,.38,.37,
+6.4,11.4,.37,.37,.37,.37,
+-1);
+const float[] ah=float[](
+1.5,15.75,.37,.37,.37,.37,
+15.75,24.,.37,.37,.26,.3,
+24.,35.26,.3,.35,.37,.37,
+35.26,40.25,.37,.37,.37,.37,
+-1);
+const float[] av=float[](
+-0.13,4.,.99,.99,.94,.79,
+4.,7.5,.79,.66,.52,.51,
+7.5,13.8,.51,.51,.51,.51,
+-1);
 
 vec3 graf()
 {
-	if (iTime < 2) {
+	if (iTime < 14) {
 		return vec3(0);
 	}
 	vec2 w=(v+1.)/2.;
 	i = 0;
-	float t=(iTime-2)/1.7,T=0,ts=0,col=0,j,_a,a,b;
+	float t=(iTime-14)/1.7,T=0,ts=0,col=0,j,_a,a,b;
 	while (t>0) {
 		T += so[i];
 		if (t < T) {
@@ -188,7 +206,7 @@ float su(float d1, float d2, float k) {
 	return mix(d2,d1,h)-k*h*(1.-h);
 }
 
-vec3 op=vec3(1.),n;
+vec3 op=vec3(1.),p=op,n;
 float railrail(vec3 p) {
 	p.z = abs(p.z+1.7) - .8;
 	float a=su(
@@ -360,7 +378,6 @@ vec3 norm(vec3 p, float dist_to_p) {
 }
 
 float flopine_shade;
-vec3 p;
 vec3 march(vec3 o,vec3 v,int s){ // x=hit y=dist_to_p z=tot_dist
 	vec3 r=vec3(0);
 	for(i=0;i<s&&r.z<350;i++){
@@ -419,7 +436,7 @@ void main()
 		//uv.y += .01;
 	//}
 
-	float ttt = rand(v)*.001 + iTime;
+	ttt = rand(v)*.001 + iTime;
 	vec3 ro = vec3(10*sin(ttt), -30*cos(ttt), -20);
 
 	//vec3 ro = vec3(20, -50, -20);
@@ -429,7 +446,7 @@ void main()
 	//ro.xy *= rot2(-m.x*TAU);
 	vec3 at = vec3(0,0,-25);
 
-	float h,down,xylen,g;
+	float h,down,xylen;
 #if debugmov //noexport
 	ro = debug[0].xyz; //noexport
 	down = debug[1].y/20.; //noexport
@@ -443,18 +460,17 @@ void main()
 	//ro=vec3(-25,-750,-20);
 	//ro.y+=iTime*10;
 	//at=vec3(-25,20,-20);
-	ro=fpar[1].xyz;
-	h=fpar[0].z;
-	down = fpar[0].w;
-	for(i=0;ttt>a[i+1]&&a[i+22]!=-1;i+=22);
-	g=(ttt-a[i])/(a[i+1]-a[i]);
-	s=1-g;
-	float sss=s*s*s,ssg=3*s*s*g,sgg=3*s*g*g,ggg=g*g*g;
-	ro.x=(sss*a[i+2]+ssg*a[i+7]+sgg*a[i+12]+ggg*a[i+17])*300-200;
-	ro.y=(sss*a[i+3]+ssg*a[i+8]+sgg*a[i+13]+ggg*a[i+18])*2400-800;
-	ro.z=(sss*a[i+4]+ssg*a[i+9]+sgg*a[i+14]+ggg*a[i+19])*80-80;
-	h=(sss*a[i+5]+ssg*a[i+10]+sgg*a[i+15]+ggg*a[i+20])*12-6;
-	down=(sss*a[i+6]+ssg*a[i+11]+sgg*a[i+16]+ggg*a[i+21])*3-3;
+	if(fpar[1].w>1){ //noexport
+		cam(ro.x,ax,300,200);
+		cam(ro.y,ay,2400,800);
+		cam(ro.z,az,-80,0);
+		cam(h,ah,12,6);
+		cam(down,av,3,3);
+	} else { //noexport
+		ro=fpar[1].xyz; //noexport
+		h=fpar[0].z; //noexport
+		down=fpar[0].w; //noexport
+	} //noexport
 	if (abs(down) < .001) down = .001;
 	xylen = sin(down);
 	down = cos(down);

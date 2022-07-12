@@ -3,7 +3,7 @@
 #define messages // so it doesn't freeze when clicking (unnecessary but ok)
 //#define nopopup // then screenshot works :^) (when also using "registerclass" and "messages")
 //#define registerclass
-#define fpslimit
+//#define fpslimit
 #define XRES 1920
 #define YRES 1080
 
