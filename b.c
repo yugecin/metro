@@ -1,7 +1,12 @@
+
 #define dbg
 #define messages // so it doesn't freeze when clicking (unnecessary but ok)
 //#define nopopup // then screenshot works :^) (when also using "registerclass" and "messages")
 //#define registerclass
+#define fpslimit
+#define XRES 1920
+#define YRES 1080
+
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
 #include "windows.h"
@@ -25,9 +30,6 @@ char *vsh=
 
 PIXELFORMATDESCRIPTOR pfd={0,1,PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER, 32, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 0};
-
-#define XRES 1920
-#define YRES 1080
 
 #ifdef registerclass
 WNDCLASSEX wc = {0};
@@ -158,7 +160,11 @@ void WinMainCRTStartup(void)
 	dm.dmPelsHeight = YRES;
 
 	float fparams[4*2];
-	int it,t,t2,k,tex;
+	int it,t,
+#ifdef fpslimit
+		t2=-1004,
+#endif
+		k,tex;
 	ChangeDisplaySettings(&dm,CDS_FULLSCREEN);
 
 #ifdef registerclass
@@ -258,7 +264,6 @@ void WinMainCRTStartup(void)
 
 	InitSound();
 	it=GetTickCount();
-	t2=-1004;
 	do
 	{
 		// get sample position for timing
@@ -276,8 +281,11 @@ void WinMainCRTStartup(void)
 		}
 #endif
 
+#ifdef fpslimit
 		if (t - t2 > 50) {
+#endif
 
+			// should technically also bind the texture ... but it works without ..
 			fparams[0] = t/1000.0f;
 			fparams[1] = 2.f;
 			((PFNGLPROGRAMUNIFORM4FVPROC)wglGetProcAddress("glProgramUniform4fv"))(s, 0, 2, fparams);
@@ -290,23 +298,15 @@ void WinMainCRTStartup(void)
 #endif
 
 			fparams[1] = .0f;
-			fparams[2] = .5f;
-			fparams[3] = .5f;
 			//fparams[4] = (&_4klang_envelope_buffer)[((MMTime.u.sample >> 8) << 5) + 2*2+0] > .9f ? .7f : .1f;
 			//fparams[4] = (&_4klang_note_buffer)[((MMTime.u.sample >> 8) << 5) + 2*3+0] > 0 ? .3f : .1f;
-			fparams[5] = .5f;
-			fparams[6] = .5f;
-			fparams[7] = .5f;
-			//((PFNGLPROGRAMUNIFORM4FVPROC)wglGetProcAddress("glProgramUniform4fv"))(s, 0, 2, fparams);
 			((PFNGLPROGRAMUNIFORM4FVPROC)wglGetProcAddress("glProgramUniform4fv"))(s, 0, 2, fparams);
-			//((PFNGLPROGRAMUNIFORM4FPROC)wglGetProcAddress("glProgramUniform4f"))(s, 0, t, t, t, t);
-			//((PFNGLPROGRAMUNIFORM4FPROC)wglGetProcAddress("glProgramUniform4f"))(s, 0, .5f,.5f,.5f,.5f);
-			//((PFNGLPROGRAMUNIFORM1IPROC)wglGetProcAddress("glProgramUniform1i"))(s, 4, 0);
-			//glProgramUniform1i(s, 4, 0);
 			glRecti(1,1,-1,-1);
 			SwapBuffers(hDC);
+#ifdef fpslimit
 			t2 = t;
 		}
+#endif
 
 		// do your intro mainloop here
 		// RenderIntro(MMTime.u.sample);
