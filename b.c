@@ -1,4 +1,7 @@
 #define dbg
+#define messages // so it doesn't freeze when clicking (unnecessary but ok)
+//#define nopopup // then screenshot works :^) (when also using "registerclass" and "messages")
+//#define registerclass
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
 #include "windows.h"
@@ -25,6 +28,10 @@ PIXELFORMATDESCRIPTOR pfd={0,1,PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER, 32, 0, 0, 0,
 
 #define XRES 1920
 #define YRES 1080
+
+#ifdef registerclass
+WNDCLASSEX wc = {0};
+#endif
 
 /*
 DEVMODE dmScreenSettings={ {0},0,0,sizeof(DEVMODE),0,DM_PELSWIDTH|DM_PELSHEIGHT,
@@ -138,7 +145,12 @@ void WinMainCRTStartup(void)
 	char log[1024];
 	int logsize;
 #endif
+#ifdef messages
 	MSG msg;
+#endif
+#ifdef nopopup
+	RECT rect;
+#endif
 	DEVMODE dm = {0};
 	dm.dmSize = sizeof(DEVMODE);
 	dm.dmFields = DM_PELSHEIGHT | DM_PELSWIDTH;
@@ -148,7 +160,37 @@ void WinMainCRTStartup(void)
 	float fparams[4*2];
 	int it,t,t2,k,tex;
 	ChangeDisplaySettings(&dm,CDS_FULLSCREEN);
-	HANDLE hWnd = CreateWindow("static",0,WS_POPUP | WS_VISIBLE | WS_MAXIMIZE, 0, 0, XRES, YRES, 0, 0, 0, 0);
+
+#ifdef registerclass
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0;
+	wc.lpfnWndProc = DefWindowProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = (HINSTANCE)0x400000;
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION); /*large icon (alt tab)*/
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH) COLOR_WINDOW;
+	wc.lpszMenuName = NULL;
+	wc.lpszClassName = "metroclass";
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION); /*small icon (taskbar)*/
+
+	if (!RegisterClassEx(&wc)) {
+		ExitProcess(0);
+	}
+
+	HANDLE hWnd = CreateWindowEx(WS_EX_APPWINDOW,wc.lpszClassName,"title",
+#ifndef nopopup
+		WS_POPUP |
+#endif
+		WS_VISIBLE | WS_MAXIMIZE, 0, 0, XRES, YRES, 0, 0, wc.hInstance, 0);
+#else
+	HANDLE hWnd = CreateWindow("static",0,
+#ifndef nopopup
+		WS_POPUP |
+#endif
+		WS_VISIBLE | WS_MAXIMIZE, 0, 0, XRES, YRES, 0, 0, 0, 0);
+#endif
 	HDC hDC = GetDC(hWnd);
 	SetPixelFormat(hDC, ChoosePixelFormat(hDC, &pfd) , &pfd);
 	wglMakeCurrent(hDC, wglCreateContext(hDC));
@@ -224,6 +266,7 @@ void WinMainCRTStartup(void)
 
 		t=GetTickCount()-it;
 
+#ifdef messages
 		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
 			if (msg.message == WM_QUIT) {
 				goto done;
@@ -231,6 +274,7 @@ void WinMainCRTStartup(void)
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+#endif
 
 		if (t - t2 > 50) {
 
@@ -238,8 +282,12 @@ void WinMainCRTStartup(void)
 			fparams[1] = 2.f;
 			((PFNGLPROGRAMUNIFORM4FVPROC)wglGetProcAddress("glProgramUniform4fv"))(s, 0, 2, fparams);
 			glRecti(1,1,-1,-1);
-			//glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, rect.right, rect.bottom, 0);
+#ifdef nopopup
+			GetClientRect(hWnd, &rect);
+			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, rect.right, rect.bottom, 0);
+#else
 			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, XRES, YRES, 0);
+#endif
 
 			fparams[1] = .0f;
 			fparams[2] = .5f;
