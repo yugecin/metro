@@ -1,16 +1,16 @@
 // vi: syntax=c
 #version 430
 #define iTime fpar[0].x
-#define xrot fpar[0].y
-#define TAU 6.283185
-#define PI 3.141592
-#define debugmov 1
+#define TAU 6.283185 //noexport
+#define PI 3.141592 //noexport
+#define debugmov 1 //noexport
 layout (location=0) uniform vec4 fpar[2];
-layout (location=2) uniform vec4 debug[2];
+layout (location=2) uniform vec4 debug[2]; //noexport
 layout (location=4) uniform sampler2D tex;
 out vec4 c;
 in vec2 v;
 float s;
+int i;
 
 const float[] so = float[] (
 //black valley 2022
@@ -154,7 +154,7 @@ vec3 graf()
 		return vec3(0);
 	}
 	vec2 w=(v+1.)/2.;
-	int i = 0;
+	i = 0;
 	float t=(iTime-2)/1.7,T=0,ts=0,col=0,j,_a,a,b;
 	while (t>0) {
 		T += so[i];
@@ -363,7 +363,7 @@ float flopine_shade;
 vec3 p;
 vec3 march(vec3 o,vec3 v,int s){ // x=hit y=dist_to_p z=tot_dist
 	vec3 r=vec3(0);
-	for(int i=0;i<s&&r.z<350;i++){
+	for(i=0;i<s&&r.z<350;i++){
 		p=o+r.z*v;
 
 		//p.y += 100.;
@@ -430,27 +430,23 @@ void main()
 	vec3 at = vec3(0,0,-25);
 
 	float h,down,xylen,g;
-#if debugmov
-	ro = debug[0].xyz;
-	down = debug[1].y/20.;
-	if (abs(down) < .001) down = .001;
-	xylen = sin(down);
-	down = cos(down);
-	at.x = ro.x+cos(debug[1].x/20.)*xylen;
-	at.y = ro.y+sin(debug[1].x/20.)*xylen;
-	at.z = ro.z+down;
-#endif
+#if debugmov //noexport
+	ro = debug[0].xyz; //noexport
+	down = debug[1].y/20.; //noexport
+	if (abs(down) < .001) down = .001; //noexport
+	xylen = sin(down); //noexport
+	down = cos(down); //noexport
+	at.x = ro.x+cos(debug[1].x/20.)*xylen; //noexport
+	at.y = ro.y+sin(debug[1].x/20.)*xylen; //noexport
+	at.z = ro.z+down; //noexport
+#endif //noexport
 	//ro=vec3(-25,-750,-20);
 	//ro.y+=iTime*10;
 	//at=vec3(-25,20,-20);
 	ro=fpar[1].xyz;
 	h=fpar[0].z;
 	down = fpar[0].w;
-	int i=0;
-	while(true){
-		if(ttt<a[i+1]||a[i+22]==-1)break;
-		i+=22;
-	}
+	for(i=0;ttt>a[i+1]&&a[i+22]!=-1;i+=22);
 	g=(ttt-a[i])/(a[i+1]-a[i]);
 	s=1-g;
 	float sss=s*s*s,ssg=3*s*s*g,sgg=3*s*g*g,ggg=g*g*g;
@@ -466,9 +462,6 @@ void main()
 	at.y = ro.y+sin(h)*xylen;
 	at.z = ro.z+down;
 
-	// TODO: 1st way of defining rd (above) gives a bit of tilt
-	// TODO: 2nd way (below) doesn't...?
-	//ro = vec3(cos(time*.2)*5.,2,sin(time*.2)*5.);
 	vec3 xx,l,cf=normalize(at-ro),
 		cl=normalize(cross(cf,vec3(0,0,-1))),
 		rd=mat3(cl,normalize(cross(cl,cf)),cf)*normalize(vec3(uv,1)),
