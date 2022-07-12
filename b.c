@@ -138,6 +138,7 @@ void WinMainCRTStartup(void)
 	char log[1024];
 	int logsize;
 #endif
+	MSG msg;
 	DEVMODE dm = {0};
 	dm.dmSize = sizeof(DEVMODE);
 	dm.dmFields = DM_PELSHEIGHT | DM_PELSWIDTH;
@@ -223,6 +224,14 @@ void WinMainCRTStartup(void)
 
 		t=GetTickCount()-it;
 
+		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+			if (msg.message == WM_QUIT) {
+				goto done;
+			}
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+
 		if (t - t2 > 50) {
 
 			fparams[0] = t/1000.0f;
@@ -255,6 +264,7 @@ void WinMainCRTStartup(void)
 		// RenderIntro(MMTime.u.sample);
 
 	} while (MMTime.u.sample < MAX_SAMPLES && !GetAsyncKeyState(VK_ESCAPE));
+done:
 	ChangeDisplaySettings(0,0);
 	ShowCursor(1);
 	ExitProcess(0);
