@@ -142,6 +142,12 @@ const float[] so = float[] (
 -1.
 );
 
+const float[] a = float[] (
+.0,2.15,.03,.5,.5,.51,.83,.03,.5,.5,.51,.83,.28,.5,.5,.38,.5,.41,.5,.5,.38,.5,
+2.15,4.99,.41,.5,.5,.38,.5,.58,.5,.5,.38,.5,.68,.5,.5,.5,.5,.68,.5,.5,.5,.5,
+-1
+);
+
 vec3 graf()
 {
 	if (iTime < 2) {
@@ -423,16 +429,42 @@ void main()
 	//ro.xy *= rot2(-m.x*TAU);
 	vec3 at = vec3(0,0,-25);
 
+	float h,down,xylen,g;
 #if debugmov
 	ro = debug[0].xyz;
-	float down = debug[1].y/20.;
+	down = debug[1].y/20.;
 	if (abs(down) < .001) down = .001;
-	float xylen = sin(down);
+	xylen = sin(down);
 	down = cos(down);
 	at.x = ro.x+cos(debug[1].x/20.)*xylen;
 	at.y = ro.y+sin(debug[1].x/20.)*xylen;
 	at.z = ro.z+down;
 #endif
+	//ro=vec3(-25,-750,-20);
+	//ro.y+=iTime*10;
+	//at=vec3(-25,20,-20);
+	ro=fpar[1].xyz;
+	h=fpar[0].z;
+	down = fpar[0].w;
+	int i=0;
+	while(true){
+		if(ttt<a[i+1]||a[i+22]==-1)break;
+		i+=22;
+	}
+	g=(ttt-a[i])/(a[i+1]-a[i]);
+	s=1-g;
+	float sss=s*s*s,ssg=3*s*s*g,sgg=3*s*g*g,ggg=g*g*g;
+	ro.x=(sss*a[i+2]+ssg*a[i+7]+sgg*a[i+12]+ggg*a[i+17])*300-200;
+	ro.y=(sss*a[i+3]+ssg*a[i+8]+sgg*a[i+13]+ggg*a[i+18])*2400-800;
+	ro.z=(sss*a[i+4]+ssg*a[i+9]+sgg*a[i+14]+ggg*a[i+19])*80-80;
+	h=(sss*a[i+5]+ssg*a[i+10]+sgg*a[i+15]+ggg*a[i+20])*12-6;
+	down=(sss*a[i+6]+ssg*a[i+11]+sgg*a[i+16]+ggg*a[i+21])*3-3;
+	if (abs(down) < .001) down = .001;
+	xylen = sin(down);
+	down = cos(down);
+	at.x = ro.x+cos(h)*xylen;
+	at.y = ro.y+sin(h)*xylen;
+	at.z = ro.z+down;
 
 	// TODO: 1st way of defining rd (above) gives a bit of tilt
 	// TODO: 2nd way (below) doesn't...?
