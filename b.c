@@ -1,11 +1,16 @@
 
-#define dbg
+//#define dbg
 #define messages // so it doesn't freeze when clicking (unnecessary but ok)
 //#define nopopup // then screenshot works :^) (when also using "registerclass" and "messages")
 //#define registerclass
 //#define fpslimit
+//#define nofullscreen
+#ifndef XRES
 #define XRES 1920
+#endif
+#ifndef YRES
 #define YRES 1080
+#endif
 
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
@@ -137,6 +142,17 @@ void  InitSound()
 // entry point for the executable if msvcrt is not used
 /////////////////////////////////////////////////////////////////////////////////
 #pragma code_seg(".main")
+#ifdef nofullscreen
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg) {
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	default: return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+}
+#endif
 //gcc+ld? int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 //gcc+link? int WINAPI _WinMainCRTStartup(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 //gcc+crinkler void mainCRTStartup(void)
@@ -165,12 +181,17 @@ void WinMainCRTStartup(void)
 		t2=-1004,
 #endif
 		k,tex;
+#ifndef nofullscreen
 	ChangeDisplaySettings(&dm,CDS_FULLSCREEN);
+#endif
 
 #ifdef registerclass
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = 0;
 	wc.lpfnWndProc = DefWindowProc;
+#ifdef nofullscreen
+	wc.lpfnWndProc = WndProc;
+#endif
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = (HINSTANCE)0x400000;
@@ -186,10 +207,13 @@ void WinMainCRTStartup(void)
 	}
 
 	HANDLE hWnd = CreateWindowEx(WS_EX_APPWINDOW,wc.lpszClassName,"title",
+#ifdef nofullscreen
+		WS_OVERLAPPEDWINDOW |
+#endif
 #ifndef nopopup
 		WS_POPUP |
 #endif
-		WS_VISIBLE | WS_MAXIMIZE, 0, 0, XRES, YRES, 0, 0, wc.hInstance, 0);
+		WS_VISIBLE, 0, 0, XRES, YRES, 0, 0, wc.hInstance, 0);
 #else
 	HANDLE hWnd = CreateWindow("static",0,
 #ifndef nopopup
@@ -228,7 +252,9 @@ void WinMainCRTStartup(void)
 		ExitProcess(1);
 	}
 #endif
+#ifndef nofullscreen
 	ShowCursor(0);
+#endif
 	//glActiveTexture(GL_TEXTURE0);
 	((PFNGLACTIVETEXTUREPROC)wglGetProcAddress("glActiveTexture"))(GL_TEXTURE0); // TODO: seems to work without, remove?
 	glGenTextures(1, &tex);
@@ -313,7 +339,9 @@ void WinMainCRTStartup(void)
 
 	} while (MMTime.u.sample < MAX_SAMPLES && !GetAsyncKeyState(VK_ESCAPE));
 done:
+#ifndef nofullscreen
 	ChangeDisplaySettings(0,0);
 	ShowCursor(1);
+#endif
 	ExitProcess(0);
 }
