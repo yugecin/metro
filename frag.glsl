@@ -2,9 +2,10 @@
 #version 430
 #define iTime fpar[0].x
 #define TAU 6.283185 //noexport
-#define PI 3.141592 //noexport
 #define debugmov 1 //noexport
 #define cam(t,ca,mm,nn) for(i=0;ttt>ca[i+1]&&ca[i+6]!=-1;i+=6);g=(ttt-ca[i])/(ca[i+1]-ca[i]);s=1-g;t=(s*s*s*ca[i+2]+s*s*g*3*ca[i+3]+s*g*g*3*ca[i+4]+g*g*g*ca[i+5])*mm-nn;
+#define PI 3.14159265359
+#define HALFPI 1.5707963268
 layout (location=0) uniform vec4 fpar[2];
 layout (location=2) uniform vec4 debug[2]; //noexport
 layout (location=4) uniform sampler2D tex;
@@ -229,37 +230,71 @@ const float[] av=float[](
 59.3,64.39,.49,.49,.49,.49,
 -1);
 
+float _atan2(float y, float x) {
+	if(x>0.)return atan(y/x);
+	if(x==0.)if(y>0.)return HALFPI;else return -HALFPI;
+	if(y<0.)return atan(y/x)-PI;return atan(y/x)+PI;
+}
+float _atan2(vec2 v){return _atan2(v.y,v.x);}
+
 vec3 graf()
 {
-	float t,T=0,ts=0,col=0,j,_a,a,b;
+	float t,T=0,ts=0,j,_a,a,b,mainsize=.015,outlinesize=.005,hilitesize=.006,dis,cur;
+	vec3 tx,d=vec3(0,0,0),maincol=d,outlinecol=vec3(0),outline2col=outlinecol,hilitecol=outlinecol,md=vec3(0,0,1);
 	i = 0;
+	vec2 w=(v+1.)/2.;
 	if(iTime>81){
 		i=529;
 		t=(iTime-81)*1.5;
+		md=vec3(0,1,0);
+		maincol=vec3(154/255.,1.,221/255.);
+		outlinecol=vec3(61/255.,20/255.,.5);
+		outlinesize=.020;
+		hilitecol=vec3(0);
 	}else if(iTime>74.7){
-		return vec3(0);
+		return d;
 	}else if(iTime>67){
 		i=403;
 		t=(iTime-67)*1.5;
+		md=vec3(0,0,1);
+		mainsize=.018;
+		maincol=vec3(.109,.3,.5);
+		outlinecol=vec3(.2,.2,.2);
+		outlinesize=.026;
+		//hilitecol=vec3(.1,.01,.900);
 	}else if(iTime>65.65){
-		return vec3(0);
+		return d;
 	}else if(iTime>57.5){
 		i=262;
 		t=(iTime-57.5)*1.5;
+		md=vec3(1,0,0);
+		maincol=vec3(.009,.3+4*(1-w.x),.5);
+		outlinecol=vec3(.002,.3,w.x);
+		outlinesize=.015;
+		//hilitecol=vec3(.1,.01,.900);
 	}else if(iTime>56.2){
-		return vec3(0);
+		return d;
 	}else if(iTime>44){
 		i=111;
 		t=(iTime-44)*1.5;
+		md=vec3(0,1,0);
+		maincol=vec3(.9-2*(1-w.x*.8),.009,w.x);
+		outlinecol=vec3(.2,.005,.9);
+		hilitecol=vec3(.0000,.01,.900);
 	}else if(iTime>31.7){
-		return vec3(0);
+		return d;
 	}else if(iTime>24){
 		i=0;
 		t=(iTime-24)*1.5;
+		maincol=vec3(.9,w.y,.007);
+		outlinecol=vec3(.9,.4,.005);
+		hilitecol=vec3(.0000,.0,.900);
+		hilitesize=.0;
 	}else{
-		return vec3(0);
+		return d;
 	}
-	vec2 w=(v+1.)/2.;
+	tx=texture(tex,w).xyz;
+	//if(length(tx.xyz)<.01)tx.w=0;
 	while (t>0) {
 		T += so[i];
 		if (t < T) {
@@ -271,7 +306,27 @@ vec3 graf()
 					b*b*b*floor(so[i+1])/100+3*b*b*a*floor(so[i+2])/100+3.*b*a*a*floor(so[i+3])/100+a*a*a*floor(so[i+4])/100,
 					b*b*b*fract(so[i+1])+3.*b*b*a*fract(so[i+2])+3.*b*a*a*fract(so[i+3])+a*a*a*fract(so[i+4])
 				);
-				col += step(distance(p, w), .015);
+				a=clamp(_a+.01+j-.4,0,1);
+				b = 1. - a;
+				vec2 p2 = vec2(
+					b*b*b*floor(so[i+1])/100+3*b*b*a*floor(so[i+2])/100+3.*b*a*a*floor(so[i+3])/100+a*a*a*floor(so[i+4])/100,
+					b*b*b*fract(so[i+1])+3.*b*b*a*fract(so[i+2])+3.*b*a*a*fract(so[i+3])+a*a*a*fract(so[i+4])
+				);
+				float ang = _atan2(p2-p);
+				// w component determines which color is currently owning the pixel
+				// higher value means higher priority
+				dis=distance(p,w);
+				cur=length(tx*md);
+				if (length(md*maincol)>cur && dis < mainsize) {
+					tx=maincol;
+				} else if (/*j>.2&&j<.6&&*/length(outlinecol*md)>cur && dis>mainsize && dis < mainsize+outlinesize) {
+					tx=outlinecol;
+				} else if (/*j>.2&&j<.6&&*/length(hilitecol*md)>cur && dis<mainsize-hilitesize && dis > mainsize-hilitesize*2) {
+					float wang = _atan2(w-p)-ang;
+					if (wang > PI/2 - .1 && wang < PI/2 + .1) {
+						tx=hilitecol;
+					}
+				}
 			}
 			break;
 		}
@@ -281,12 +336,12 @@ vec3 graf()
 			break;
 		}
 	}
-	return texture(tex,w).xyz + col;
+	return tx;
 }
 
 float rand(vec2 p){return fract(sin(dot(p.xy,vec2(12.9898,78.233)))*43758.5453);}
 
-mat2 rot2(float a){float s=sin(a),c=cos(a);return mat2(c,s,-s,c);}
+//mat2 rot2(float a){float s=sin(a),c=cos(a);return mat2(c,s,-s,c);}
 
 float su(float d1, float d2, float k) {
 	float h = clamp(.5+.5*(d2-d1)/k,0.,1.);
@@ -515,7 +570,7 @@ void main()
 		//815
 		//c=vec4(step(-.99,uv.x),0.,0.,1.);
 		//uv.x=(uv.x+1.)/.185;
-		c=vec4(graf(),0);
+		c=vec4(graf(),1);
 		//c=vec4(vec3(0.),1.);
 		return;
 	}
@@ -585,12 +640,13 @@ void main()
 			q=p.yz;
 			q.x=mod(q.x,400);
 			q=(q-vec2(60,-50))/vec2(80,45);
-			if (q.x>.01&&q.y>.01&&q.x<.99&&q.y<.99) {
+			//if (q.x>.01&&q.y>.01&&q.x<.99&&q.y<.99) {
+			if (q.x>0&&q.y>0&&q.x<1&&q.y<1) {
 				if(p.x<0)q.x=1-q.x; // other direction for other side
 				//l*=q.x; // add color here
-				vec3 t=texture(tex,q).xyz;
-				l+=t*3.;
-				if(length(t)>.1) l+=.9*e; // TODO is this needed
+				//q.y=1-q.y;// TODO remove me
+				l+=texture(tex,q).xyz*7;
+				//if(length(t)>.1) l+=.9*e; // TODO is this needed
 				//l=vec3(graf(q))*7.;
 			}
 		}
