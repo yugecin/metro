@@ -259,8 +259,8 @@ vec3 graf()
 		t=(iTime-67)*1.5;
 		md=vec3(0,0,1);
 		mainsize=.018;
-		maincol=vec3(.109,.3,.5);
-		outlinecol=vec3(.2,.2,.2);
+		maincol=vec3(.4,.4,.4);
+		outlinecol=vec3(.109,.3,.2);
 		outlinesize=.026;
 		//hilitecol=vec3(.1,.01,.900);
 	}else if(iTime>65.65){
@@ -269,7 +269,7 @@ vec3 graf()
 		i=262;
 		t=(iTime-57.5)*1.5;
 		md=vec3(1,0,0);
-		maincol=vec3(.009,.3+4*(1-w.x),.5);
+		maincol=vec3(.009,.3+.4*(1-w.x),.5);
 		outlinecol=vec3(.002,.3,w.x);
 		outlinesize=.015;
 		//hilitecol=vec3(.1,.01,.900);
@@ -644,7 +644,7 @@ void main()
 				if(p.x<0)q.x=1-q.x; // other direction for other side
 				//l*=q.x; // add color here
 				//q.y=1-q.y;// TODO remove me
-				l+=texture(tex,q).xyz*7;
+				l+=texture(tex,q).xyz*5;
 				//if(length(t)>.1) l+=.9*e; // TODO is this needed
 				//l=vec3(graf(q))*7.;
 			}
