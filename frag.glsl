@@ -350,7 +350,7 @@ float su(float d1, float d2, float k) {
 
 vec3 op=vec3(1.),p=op,n;
 float railrail(vec3 p) {
-	p.z = abs(p.z+1.7) - .8;
+	p.z = abs(p.z+1.8) - .8;
 	float a=su(
 		length(max(abs(p+vec3(0.,0.,.5)) - vec3(.6,5.,.7),0.)), //mid
 		length(max(abs(p) - vec3(1.,5.,.2),0.)) //bot/top
@@ -592,12 +592,7 @@ void main()
 #if debugmov //noexport
 	ro = debug[0].xyz; //noexport
 	down = debug[1].y/20.; //noexport
-	if (abs(down) < .001) down = .001; //noexport
-	xylen = sin(down); //noexport
-	down = cos(down); //noexport
-	at.x = ro.x+cos(debug[1].x/20.)*xylen; //noexport
-	at.y = ro.y+sin(debug[1].x/20.)*xylen; //noexport
-	at.z = ro.z+down; //noexport
+	h=debug[1].x/20.;
 #endif //noexport
 	//ro=vec3(-25,-750,-20);
 	//ro.y+=iTime*10;
