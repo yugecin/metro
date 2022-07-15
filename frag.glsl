@@ -627,5 +627,6 @@ void main()
 		col = pow(col, vec3(.8545));	// gamma correction
 	//}
 
+	col = mix(col,vec3(0),smoothstep(91.5, 93., iTime));
 	c = vec4(col,1.0);
 }
