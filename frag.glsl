@@ -2,7 +2,7 @@
 #version 430
 #define iTime fpar[0].x
 #define TAU 6.283185 //noexport
-#define debugmov 1 //noexport
+//#define debugmov 1 //noexport
 //#define flopineshade 1 //noexport
 #define cam(t,ca,mm,nn) for(i=0;ttt>ca[i+1]&&ca[i+6]!=-1;i+=6);g=(ttt-ca[i])/(ca[i+1]-ca[i]);s=1-g;t=(s*s*s*ca[i+2]+s*s*g*3*ca[i+3]+s*g*g*3*ca[i+4]+g*g*g*ca[i+5])*mm-nn;
 #define PI 3.14159265359
@@ -282,7 +282,7 @@ vec3 graf()
 		maincol=vec3(.9-2*(1-w.x*.8),.009,w.x);
 		outlinecol=vec3(.2,.005,.9);
 		hilitecol=vec3(.0000,.01,.900);
-	}else if(iTime>31.7){
+	}else if(iTime>31.25){
 		return d;
 	}else if(iTime>24){
 		i=0;
