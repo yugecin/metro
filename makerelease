@@ -1,6 +1,6 @@
 gcc -x c -c b.c -o b.o &&
-"Crinkler\crinkler.exe" b.o 4klang.obj /OUT:metro_1920p.exe "/LIBPATH:C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib" kernel32.lib user32.lib opengl32.lib gdi32.lib winmm.lib /SUBSYSTEM:WINDOWS /COMPMODE:SLOW /ORDERTRIES:10000 /HASHTRIES:50 /HASHSIZE:200 /TRUNCATEFLOATS:32 &&
+"Crinkler\crinkler.exe" b.o 4klang.obj /OUT:metro-1920p.exe "/LIBPATH:C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib" kernel32.lib user32.lib opengl32.lib gdi32.lib winmm.lib /SUBSYSTEM:WINDOWS /COMPMODE:SLOW /ORDERTRIES:10000 /HASHTRIES:50 /HASHSIZE:200 /TRUNCATEFLOATS:32 &&
 gcc -x c -c b.c -o b.o -DXRES=1280 -DYRES=720 &&
-"Crinkler\crinkler.exe" b.o 4klang.obj /OUT:metro_720p.exe "/LIBPATH:C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib" kernel32.lib user32.lib opengl32.lib gdi32.lib winmm.lib /SUBSYSTEM:WINDOWS /COMPMODE:SLOW /ORDERTRIES:10000 /HASHTRIES:50 /HASHSIZE:200 /TRUNCATEFLOATS:32 &&
+"Crinkler\crinkler.exe" b.o 4klang.obj /OUT:metro-720p.exe "/LIBPATH:C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib" kernel32.lib user32.lib opengl32.lib gdi32.lib winmm.lib /SUBSYSTEM:WINDOWS /COMPMODE:SLOW /ORDERTRIES:10000 /HASHTRIES:50 /HASHSIZE:200 /TRUNCATEFLOATS:32 &&
 gcc -x c -c b.c -o b.o -DXRES=1280 -DYRES=720 -Dregisterclass -Dnopopup -Ddbg -Dnofullscreen &&
-"Crinkler\crinkler.exe" b.o 4klang.obj /OUT:metro_720p_windowed_debug.exe "/LIBPATH:C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib" kernel32.lib user32.lib opengl32.lib gdi32.lib winmm.lib /SUBSYSTEM:WINDOWS /COMPMODE:SLOW /ORDERTRIES:10000 /HASHTRIES:50 /HASHSIZE:200 /TRUNCATEFLOATS:32
+"Crinkler\crinkler.exe" b.o 4klang.obj /OUT:metro-720p-windowed-debug.exe "/LIBPATH:C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Lib" kernel32.lib user32.lib opengl32.lib gdi32.lib winmm.lib /SUBSYSTEM:WINDOWS /COMPMODE:SLOW /ORDERTRIES:10000 /HASHTRIES:50 /HASHSIZE:200 /TRUNCATEFLOATS:32

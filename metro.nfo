@@ -1,0 +1,89 @@
+//// metro
+
+my first demo prod, made in about 3 weeks
+requires at least OpenGL 4.3
+uses Crinkler and 4klang - this would be a lousy way-more-bytes without them <3
+
+It's kinda rough and very much rushed, fuckings to
+my postponing monkey brain, but I really wanted to
+release something this party. I tried going for 4k
+first, but that line was crossed soon and I didn't
+have much more time to try to make it fit, so this
+will be an 8k instead, real size about 6500 bytes.
+
+Also I don't know shit about music, but the audio
+I ended up with defeats my expectations, so I'm
+glad about that. Many thanks to 4klang again, I
+only really used the sample instruments that are
+distributed with it, with veeeery minor tweaks.
+
+I'd add more greetings in the prod, but one has
+to stop somewhere (also time's up).
+
+Also fuckings to cancelled flights, but I made it :D
+
+
+
+//// files
+
+metro-1920p.exe
+	runs fullscreen at 1920x720
+
+metro-720p.exe
+	runs fullscreen at 1280x720
+
+metro-720p-windowed-debug.exe
+	runs windowed at 1280x720. If the shader compilation info log is not
+	empty, it will show that info in a messagebox and exit the process.
+
+
+
+//// additional thanks
+
+Flopine & evvvvil
+	for the seminar about shader coding given at Revision 2019
+
+auld
+	for releasing the source of their demo "chocolux",
+	showing me the basics of how to do this kind of thing
+
+iq
+	for releasing "Demo-Framework-4k",
+	also showing me the basics of how to do this kind of thing
+
+	for all the SDF articles on their website
+
+awildbrysen
+	testing and providing motivation <3
+
+.. I'm sure I'm missing someone
+
+
+
+//// extra greetings
+
+awildbrysen, Wieku, Sunpy, Luken, MrRheinerZufall
+
+
+
+//// <3
+
+much love to Dark Valley orgateam
+
+
+
+//// possible blog post
+
+I might or might not post some WIP content on my blog. There really nothing to
+mention from a technical standpoint, I'm sure the way this demo works is the
+same way people have been using in their demos for years. So I can just write
+how I got going with my first demo release and showing WIP stuff and showing
+the horrible frankenprograms I made to facilitate making this demo.
+
+https://robin.basdon.net/blog.html
+
+
+
+//// eof
+
+- yugecin
