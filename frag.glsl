@@ -2,7 +2,7 @@
 #version 430
 #define iTime fpar[0].x
 #define TAU 6.283185 //noexport
-//#define debugmov 1 //noexport
+#define debugmov 1 //noexport
 //#define flopineshade 1 //noexport
 #define cam(t,ca,mm,nn) for(i=0;ttt>ca[i+1]&&ca[i+6]!=-1;i+=6);g=(ttt-ca[i])/(ca[i+1]-ca[i]);s=1-g;t=(s*s*s*ca[i+2]+s*s*g*3*ca[i+3]+s*g*g*3*ca[i+4]+g*g*g*ca[i+5])*mm-nn;
 #define PI 3.14159265359
@@ -463,6 +463,19 @@ float ts2(vec3 p) {
 	return min(v,v2);
 }
 
+float pc(vec3 p) {
+	vec3 a=vec3(p.x+54,mod(p.y,100)-50,p.z+24),b=a,c=a,s=vec3(3,1,.4);
+	b.z=abs(b.z)-3.2;
+	c.x-=2.6;
+	return min(
+		length(max(abs(a)-s,0.))-.1,
+		min(
+			length(max(abs(b)-s,0.))-.1,
+			length(max(abs(c)-s.zyx,0.))-.1
+		)
+	);
+}
+
 float supports(vec3 p) {
 	p.y=mod(p.y,100)-50;
 	float c=length(max(abs(p.y)-3,0));
@@ -473,8 +486,7 @@ float supports(vec3 p) {
 	p.x=mod(abs(p.x),160)-80;
 	float top2=ts2(p);
 	p.x=abs(p.x)-20;
-	float sup=min(support(p.xy), min(top,top2));
-	return sup;
+	return min(support(p.xy), min(top,top2));
 }
 
 float tunnel(vec3 p) {
@@ -498,14 +510,20 @@ float map(vec3 p) {
 		f=vec2(dot(p,vec3(0,0,-1)),2),
 		//walls
 		w=vec2(min(dot(p,vec3(-1,0,0))+103,dot(p,vec3(1,0,0))+263),3), // l/r
+		//pipes
+		i=vec2(length(vec2(p.x+53,abs(p.z+24)-1.6))-1.2,9),
+		//pipe catchers
+		j=vec2(pc(p),9),
 		r=vec2(allrail(p),4), // 5 is rail itself
 		u=vec2(tunnel(p),6);
 
 	t=c.x<t.x?c:t;
 	t=f.x<t.x?f:t;
 	t=w.x<t.x?w:t;
+	t=i.x<t.x?i:t;
 	t=r.x<t.x?vec2(r.x,4+s):t;
 	t=u.x<t.x?u:t;
+	t=j.x<t.x?j:t;
 	s=t.y;
 	return t.x;
 }
