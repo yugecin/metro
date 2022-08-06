@@ -2,7 +2,6 @@
 #version 430
 #define iTime fpar[0].x
 #define TAU 6.283185 //noexport
-//#define debugmov 1 //noexport
 //#define flopineshade 1 //noexport
 #define cam(t,ca,mm,nn) for(i=0;ttt>ca[i+1]&&ca[i+6]!=-1;i+=6);g=(ttt-ca[i])/(ca[i+1]-ca[i]);s=1-g;t=(s*s*s*ca[i+2]+s*s*g*3*ca[i+3]+s*g*g*3*ca[i+4]+g*g*g*ca[i+5])*mm-nn;
 #define PI 3.14159265359
@@ -608,26 +607,26 @@ void main()
 	vec3 at = vec3(0,0,-25);
 
 	float h,down,xylen;
-#if debugmov //noexport
-	ro = debug[0].xyz; //noexport
-	down = debug[1].y/20.; //noexport
-	h=debug[1].x/20.; //noexport
-#else //noexport
 	//ro=vec3(-25,-750,-20);
 	//ro.y+=iTime*10;
 	//at=vec3(-25,20,-20);
-	if(fpar[1].w>1){ //noexport
+
+	if (debug[0].w>1f) {//noexport
+		ro = debug[0].xyz; //noexport
+		down = debug[1].y/20.; //noexport
+		h=debug[1].x/20.; //noexport
+	}else if (debug[1].w>1f){//noexport
 		cam(ro.x,ax,300,200);
 		cam(ro.y,ay,2400,800);
 		cam(ro.z,az,-80,0);
 		cam(h,ah,12,6);
 		cam(down,av,3,3);
-	} else { //noexport
+	}else{//noexport
 		ro=fpar[1].xyz; //noexport
 		h=fpar[0].z; //noexport
 		down=fpar[0].w; //noexport
-	} //noexport
-#endif //noexport
+	}//noexport
+
 	if (abs(down) < .001) down = .001;
 	xylen = sin(down);
 	down = cos(down);
